@@ -1139,7 +1139,17 @@ def build():
                 "navigateur : les requêtes sont donc calculées à l'avance. Un recruteur peut tester sans rien "
                 "installer."),
               photo(ROOT / "docs/demo_web.jpg", "Figure 23 — La démo web : « rideau rouge » surligné, le reste en "
-                                                 "gris.", CW * 0.6)]
+                                                 "gris.", CW * 0.6),
+              P("La démo web permet aussi la <b>sélection au clic</b> : chaque gaussienne y embarque son vecteur de "
+                "sens, compressé de 128 à 16 dimensions par une seconde SVD et stocké sur 1 octet par dimension "
+                "(les similarités restent corrélées à 0,989 avec l'original). Le clic lance un rayon depuis la "
+                "caméra, et le calcul se fait entièrement dans le navigateur."),
+              photo(ROOT / "docs/clic_roses.jpg", "Figure 24 — Un clic sur une seule rose surligne toutes les roses "
+                                                  "du papier peint.", CW * 0.6),
+              callout("Aucune requête texte ne trouvait le papier peint, car le score LERF le compare au négatif "
+                      "« texture » (chapitre 13). La requête par l'exemple compare directement les vecteurs de sens, "
+                      "sans mots ni négatifs : elle contourne cette limite. Une limite comprise donne souvent une "
+                      "solution.", GREEN, GREEN_BG, "Une découverte")]
 
     # ---------------------------------------------------------- 10. résultats
     story += H1("10. Les résultats")
