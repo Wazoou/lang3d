@@ -35,6 +35,23 @@ Requêtes en français (gaussiennes au-dessus du seuil en rouge) :
 - ✅ « rideau rouge » avec l'option *objet entier* (1080 gaussiennes, tout le rideau ; 168 sans)
 - ❌ « papier peint à fleurs », « plaque en bois » : seuls quelques fragments ressortent (voir limites)
 
+## Résultats sur une vidéo de téléphone
+
+Vidéo 4K de 25 s en tournant autour d'une gourde posée sur du carrelage (non publiée) :
+
+| Étape | Résultat |
+|---|---|
+| Frames | 40 images 720×1280 en 22 s |
+| Poses VGGT | tour complet (~360°) reconstruit, 6,6 Go VRAM |
+| Gaussian Splatting | 5 min 17 s, 797 k gaussiennes, PSNR entraînement 35,6 dB |
+
+- ✅ « gourde violette » (isolée parfaitement, rien d'autre ne s'allume), « chaussures », « couvercle »
+- ❌ « carrelage », « parquet », « mur blanc » : même limite que les fonds texturés
+- Le choix des mots compte : « bouchon » échoue (compris comme un bouchon de liège), « couvercle » réussit
+
+Ce test a révélé un bug invisible sur les images de fox : les téléphones stockent la
+vidéo couchée avec une métadonnée de rotation qu'OpenCV 4.11 n'applique pas par défaut.
+
 ## Ce qui a été essayé
 
 Chaque idée a été mesurée sur fox (nombre de gaussiennes surlignées + vérification visuelle) avant d'être gardée.
@@ -46,6 +63,7 @@ Chaque idée a été mesurée sur fox (nombre de gaussiennes surlignées + véri
 | Zones non couvertes par SAM ajoutées comme masques | Le fond (29 % de l'image) a enfin une feature | ✅ gardé |
 | Fond encodé par des carrés intérieurs plutôt qu'un crop troué | Aucun gain : le score reste au niveau du négatif « texture » | ❌ retiré |
 | Ensemble de prompts (« {} », « une photo de {} », « a photo of {} ») | Objets : « rideau rouge » 168 → 1080. Parties : « oreille du renard » surligne tout le renard | ⚖️ option *objet entier*, désactivée par défaut |
+| Retirer le négatif « texture » pour les surfaces | Aucun gain visible sur « carrelage », « parquet », « mur blanc » | ❌ non intégré |
 
 ## Pipeline
 

@@ -14,7 +14,8 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 ## Phase 1 — Vidéo → images
 - [x] Extraction des frames (OpenCV), une par fenêtre temporelle — testé sur une vidéo synthétique (300 frames → 50)
 - [x] Garder la frame la plus nette de chaque fenêtre (variance du Laplacien) — 50/50 frames nettes retrouvées parmi 5 copies floutées
-- [ ] Valider sur une vraie vidéo de téléphone (rotation, compression, flou de bougé réel)
+- [x] Bug trouvé sur une vraie vidéo : frames couchées, car OpenCV 4.11 n'applique pas la métadonnée de rotation des téléphones → `CAP_PROP_ORIENTATION_AUTO`
+- [x] Vraie vidéo de téléphone (« bottle », 4K, 24,6 s, tour complet) : 40 frames 720×1280 en 22 s
 
 ## Phase 2 — Poses de caméra
 - [x] ~~COLMAP via pycolmap~~ → abandonné : Windows (Smart App Control) bloque la DLL non signée de pycolmap
@@ -51,7 +52,9 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 
 ## Phase 7 — Test et démo
 - [x] Test de bout en bout sur une scène publique (fox d'instant-ngp, 50 images)
-- [ ] Test sur une vidéo filmée au téléphone
+- [x] Test sur une vidéo filmée au téléphone (« bottle », 40 vues, tour complet) : VGGT 6,6 Go, 3DGS 5 min 17 s, 797 k gaussiennes, PSNR 35,6 dB
+  - ✅ « gourde violette » (isolée parfaitement), « chaussures », « couvercle »
+  - ❌ « carrelage », « parquet », « mur blanc » (surfaces) ; « bouchon » (compris comme un bouchon de liège)
 - [x] README avec explications, résultats, captures et tableau « ce qui a été essayé »
 - [x] GIF de démo (`python -m lang3d demo`) : trajectoire interpolée, 98 images, 3,8 Mo
 - [x] Repo GitHub public pour le CV : https://github.com/Wazoou/lang3d
@@ -59,7 +62,8 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 ## Pistes d'amélioration (à ajouter au fil de l'eau)
 - [x] ~~Fonds texturés : carrés intérieurs au lieu du crop troué~~ → testé, aucun gain (le fond reste au niveau du négatif « texture »), retiré
 - [x] ~~Requêtes courtes : ensemble de prompts~~ → testé : aide les objets (« rideau rouge » 168 → 1080) mais noie les parties (« oreille du renard » → tout le renard) ; gardé en option
-- [ ] Fonds texturés, piste suivante : retirer « texture » des négatifs quand la requête désigne une surface (papier peint, sol, mur)
+- [x] ~~Fonds texturés : retirer « texture » des négatifs~~ → testé sur bottle, aucun gain visible sur « carrelage », « parquet », « mur blanc »
+- [ ] Fonds texturés, piste suivante : vérifier en 2D si SAM produit un masque propre pour le sol, sinon segmenter les surfaces planes à part (plans estimés depuis la profondeur VGGT)
 - [ ] Requêtes courtes, piste suivante : compléter automatiquement le contexte de la scène (« oreilles » → « oreilles du renard ») avec l'objet le plus pertinent
 - [ ] Plus de 50 vues : VGGT par blocs qui se chevauchent + alignement Sim(3) entre blocs
 - [ ] Rendu de la carte de pertinence en 2D (heatmap) en plus de la surbrillance 3D

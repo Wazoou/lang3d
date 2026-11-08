@@ -26,6 +26,9 @@ def extract_frames(video: Path, out_dir: Path, num_frames: int = 40, max_side: i
     cap = cv2.VideoCapture(str(video))
     if not cap.isOpened():
         raise RuntimeError(f"Impossible d'ouvrir la vidéo {video}")
+    # Les téléphones stockent souvent la vidéo couchée avec une métadonnée de
+    # rotation ; OpenCV 4.11 ne l'applique pas par défaut.
+    cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 1)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     window = max(1, total // num_frames)
     out_dir.mkdir(parents=True, exist_ok=True)
