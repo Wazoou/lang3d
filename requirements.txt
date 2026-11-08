@@ -1,0 +1,19 @@
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.4.1+cu124
+torchvision==0.19.1+cu124
+numpy<2
+opencv-python
+open_clip_torch
+transformers==4.49.0  # les versions récentes exigent torch>=2.6
+sentencepiece
+segment-anything
+viser
+plyfile
+tqdm
+einops           # dépendances de vggt
+huggingface_hub
+safetensors
+setuptools<70    # requis par torch.utils.cpp_extension, importé par gsplat
+# Wheel Windows précompilée (Python 3.10 / torch 2.4 / CUDA 12.4)
+gsplat @ https://github.com/nerfstudio-project/gsplat/releases/download/v1.5.3/gsplat-1.5.3%2Bpt24cu124-cp310-cp310-win_amd64.whl
+# vggt épingle torch 2.3 : à installer à part avec --no-deps (voir README)
