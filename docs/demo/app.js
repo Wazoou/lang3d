@@ -22,7 +22,7 @@ const n = splat.data.vertexCount, dim = meta.feature_dim;
 const original = splat.data.colors.slice();
 const positions = splat.data.positions.slice();
 const scales = splat.data.scales.slice();
-const state = { scores: null, label: "", threshold: meta.threshold, isolate: false };
+const state = { scores: null, label: "", threshold: meta.threshold, isolate: false, heat: false };
 
 // Point de vue initial = première caméra de la vidéo. OrbitControls place la caméra en
 // cible + r · (sin α cos β, −sin β, −cos α cos β) : on inverse cette formule.
@@ -43,7 +43,15 @@ function recolor() {
     let hits = 0;
     for (let i = 0; i < n; i++) {
       const v = s[i] / 255, k = 4 * i;
-      if (v > t) {
+      if (state.heat) {
+        // Carte de chaleur (comme lang3d.query.heatmap) : du gris au rouge selon le score.
+        const a = Math.pow(v, 0.7), g = (original[k] + original[k + 1] + original[k + 2]) / 6;
+        colors[k] = g * (1 - a) + 255 * a;
+        colors[k + 1] = g * (1 - a) + 26 * a;
+        colors[k + 2] = g * (1 - a) + 26 * a;
+        colors[k + 3] = state.isolate && v <= t ? 0 : original[k + 3];
+        if (v > t) hits++;
+      } else if (v > t) {
         const a = Math.min(1, 0.5 + 0.5 * (v - t) / Math.max(1 - t, 1e-6));
         colors[k] = original[k] * (1 - a) + 255 * a;
         colors[k + 1] = original[k + 1] * (1 - a) + 26 * a;
@@ -152,6 +160,10 @@ $("threshold").oninput = (e) => {
 };
 $("isolate").onchange = (e) => {
   state.isolate = e.target.checked;
+  if (state.scores) requestRecolor();
+};
+$("heat").onchange = (e) => {
+  state.heat = e.target.checked;
   if (state.scores) requestRecolor();
 };
 

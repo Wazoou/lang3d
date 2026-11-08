@@ -176,6 +176,7 @@ Options de requête (viewer et `query`) :
 - **Niveau** (`--level small|large`) : `small` pour une partie d'objet (« oreille »), `large` pour un objet entier ; par défaut, le plus pertinent.
 - **Objet entier** (`--objet-entier`) : ensemble de prompts, mieux pour les objets, moins bien pour les parties.
 - **Seuil** et **Isoler** (viewer) : régler la sélection et masquer le reste de la scène.
+- **Carte de chaleur** (viewer et démo web) : score continu du gris au rouge, sans seuil, pour voir les « presque réponses » que le seuil masque.
 - **Sélectionner en cliquant** (viewer) : cliquer sur un objet surligne tout ce qui lui ressemble, sans taper de texte (requête par l'exemple, à partir du vecteur de sens de la gaussienne cliquée).
 
 ![Un clic sur le renard](docs/clic_renard.jpg)

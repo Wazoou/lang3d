@@ -100,6 +100,14 @@ def highlight(rgb: torch.Tensor, scores: torch.Tensor, threshold: float):
     return colors, hit
 
 
+def heatmap(rgb: torch.Tensor, scores: torch.Tensor) -> torch.Tensor:
+    """Carte de chaleur sans seuil : du gris (score 0) au rouge (score 1), une seule teinte."""
+    gray = rgb.mean(1, keepdim=True).expand(-1, 3) * 0.5
+    red = torch.tensor([1.0, 0.1, 0.1], device=rgb.device)
+    s = scores.clamp(0, 1)[:, None] ** 0.7  # un peu de contraste pour les scores faibles
+    return gray * (1 - s) + red * s
+
+
 def export_query(scene_dir: Path, text: str, threshold: float = 0.5, out: Path | None = None,
                  level: str | None = None, ensemble: bool = False):
     splats, _, _ = load_splats(scene_dir / "gs" / "splats.pt")

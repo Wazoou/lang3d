@@ -88,5 +88,5 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [ ] Fonds texturés, piste suivante : vérifier en 2D si SAM produit un masque propre pour le sol, sinon segmenter les surfaces planes à part (plans estimés depuis la profondeur VGGT)
 - [ ] Requêtes courtes, piste suivante : compléter automatiquement le contexte de la scène (« oreilles » → « oreilles du renard ») avec l'objet le plus pertinent
 - [ ] Plus de 50 vues : VGGT par blocs qui se chevauchent + alignement Sim(3) entre blocs
-- [ ] Rendu de la carte de pertinence en 2D (heatmap) en plus de la surbrillance 3D
+- [x] Carte de chaleur (score continu, sans seuil) dans le viewer et la démo web — montre que tout le renard a un score élevé, le seuil en coupait une partie
 - [x] ~~Évaluation quantitative~~ → faite sur LERF figurines (Phase 8)

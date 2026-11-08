@@ -11,7 +11,7 @@ import torch
 import viser
 
 from .gaussians import load_splats, sh_to_rgb
-from .query import SceneQuery, clean_query, highlight
+from .query import SceneQuery, clean_query, heatmap, highlight
 from .scene import load_scene
 
 
@@ -86,6 +86,7 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
     pick = server.gui.add_button("Sélectionner en cliquant", hint="puis clique sur un objet dans la scène")
     threshold = server.gui.add_slider("Seuil", 0.0, 1.0, 0.01, 0.5)
     isolate = server.gui.add_checkbox("Isoler", False)
+    heat = server.gui.add_checkbox("Carte de chaleur", False, hint="score continu, sans seuil")
     reset = server.gui.add_button("Réinitialiser")
     status = server.gui.add_markdown("")
     state = {"scores": None, "label": ""}
@@ -96,6 +97,8 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
             status.content = state["label"]
         else:
             colors, hit = highlight(rgb, state["scores"], threshold.value)
+            if heat.value:
+                colors = heatmap(rgb, state["scores"])
             opac = base_opacity * hit if isolate.value else base_opacity
             status.content = f"**{hit.sum().item()}** gaussiennes au-dessus du seuil · {state['label']}"
         splat.rgbs = colors.cpu().numpy()
@@ -137,6 +140,7 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
 
     threshold.on_update(lambda _: refresh())
     isolate.on_update(lambda _: refresh())
+    heat.on_update(lambda _: refresh())
 
     @server.on_client_connect
     def _(client: viser.ClientHandle):
