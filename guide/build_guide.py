@@ -996,7 +996,10 @@ def build():
               P("<b>Qualité.</b> On la mesure en <b>PSNR</b> = 10 · log<sub>10</sub>(1 / erreur quadratique "
                 "moyenne), en décibels : plus c'est haut, mieux c'est, et 30 dB est déjà très bon. Scène fox : 29,7 dB "
                 "en 3 min 43 s, 419 000 gaussiennes. Vidéo de la gourde : 35,6 dB en 5 min 17 s, 797 000 gaussiennes. "
-                "Attention : ces valeurs sont mesurées sur les vues d'entraînement, donc flatteuses."),
+                "Attention : ces valeurs sont mesurées sur les vues d'entraînement, donc flatteuses. Avec l'option "
+                "<font name='Mono'>--test-every 8</font>, une vue sur huit est mise de côté : sur ces 7 vues jamais "
+                "vues, fox obtient <b>25,0 dB</b> (SSIM 0,72), contre 31,2 dB sur les vues d'entraînement. L'écart "
+                "montre qu'avec seulement 43 vues, le modèle apprend en partie ses images par cœur."),
               photo(ROOT / "docs/rendu_vs_photo.jpg", "Figure 9 — Scène fox. Pour chaque paire : photo d'origine à "
                                                        "gauche, rendu des gaussiennes à droite.", CW * 0.72)]
 
@@ -1080,7 +1083,9 @@ def build():
                 "elle aide pour les objets entiers mais noie les parties d'objets, d'où sa désactivation par défaut."),
               P("<b>Le viewer</b> utilise viser : un serveur Python envoie les gaussiennes au navigateur, qui les "
                 "dessine lui-même en WebGL. À chaque requête, seules les couleurs et les opacités sont renvoyées. Une "
-                "requête prend 0,02 à 0,3 s."),
+                "requête prend 0,02 à 0,3 s. Le bouton <b>Sélectionner en cliquant</b> permet aussi une requête par "
+                "l'exemple : on clique sur un objet, on prend la première gaussienne opaque traversée par le rayon, "
+                "et on surligne toutes les gaussiennes dont le vecteur de sens lui ressemble."),
               photo(ROOT / "docs/viewer_renard.jpg", "Figure 16 — Le viewer web : « Où est le renard ? ».", CW * 0.55)]
 
     # ---------------------------------------------------------- 9. code
@@ -1109,6 +1114,26 @@ def build():
                    "python -m lang3d features scenes/salon\n"
                    "python -m lang3d lift     scenes/salon\n"
                    "python -m lang3d view     scenes/salon      # http://localhost:8080")]
+    story += H2("9.1 Tests et intégration continue")
+    story += [P("19 tests <font name='Mono'>pytest</font> vérifient les briques sensibles : le nettoyage des requêtes, "
+                "le lecteur COLMAP (sur une reconstruction binaire fabriquée à la main), le protocole d'évaluation "
+                "(lissage comparé à la boucle d'origine de LangSplat), la sélection des frames nettes, la géométrie "
+                "du padding de VGGT, la sélection au clic, le format <font name='Mono'>.splat</font>, et l'astuce du "
+                "gradient : deux gaussiennes posées sur deux zones de sens différentes doivent retrouver chacune son "
+                "vecteur. GitHub Actions les relance sur Linux à chaque push ; le test GPU y est sauté."),
+              P("Un test a d'ailleurs révélé un détail du protocole : le flou d'OpenCV « reflète » l'image sur ses "
+                "bords, ce qui décale vers le bord le maximum d'un objet qui le touche. LangSplat a le même "
+                "comportement, puisque c'est le réglage par défaut d'OpenCV.")]
+    story += H2("9.2 La démo web statique")
+    story += [P("La commande <font name='Mono'>export-web</font> produit une page autonome, publiable avec "
+                "GitHub Pages : les 250 000 gaussiennes les plus importantes au format "
+                "<font name='Mono'>.splat</font> (32 octets chacune), un score de 0 à 255 par gaussienne pour chaque "
+                "requête précalculée, et un viewer gsplat.js chargé depuis un CDN. La scène est recentrée et "
+                "redressée, et la vue de départ est celle de la première caméra. SigLIP 2 ne tourne pas dans le "
+                "navigateur : les requêtes sont donc calculées à l'avance. Un recruteur peut tester sans rien "
+                "installer."),
+              photo(ROOT / "docs/demo_web.jpg", "Figure 23 — La démo web : « rideau rouge » surligné, le reste en "
+                                                 "gris.", CW * 0.6)]
 
     # ---------------------------------------------------------- 10. résultats
     story += H1("10. Les résultats")
@@ -1215,15 +1240,17 @@ def build():
     story += [table([["Limite", "Piste"],
                      ["~40-50 vues maximum sur 8 Go (VGGT)", "traiter la vidéo par blocs qui se chevauchent et les "
                                                              "aligner entre eux"],
-                     ["PSNR mesuré sur les vues d'entraînement", "garder 1 image sur 8 de côté pour mesurer la "
-                                                                 "vraie qualité"],
-                     ["« floaters » loin des vues filmées", "ajouter la profondeur de VGGT à la perte d'entraînement"],
+                     ["écart de 6 dB entre vues d'entraînement et vues de test", "plus de vues, ou des a priori "
+                                                                                 "géométriques plus forts"],
+                     ["« floaters » loin des vues filmées", "la profondeur VGGT dans la perte n'a pas donné de gain "
+                                                           "net : essayer une régularisation des normales"],
                      ["surfaces texturées (sol, mur, papier peint)", "segmenter les grands plans à partir de la "
                                                                       "profondeur"],
                      ["requêtes courtes sans contexte (« les oreilles »)", "compléter avec l'objet le plus "
                                                                            "pertinent de la scène"],
                      ["1 scène évaluée sur 4", "évaluer ramen, teatime et waldo_kitchen"],
-                     ["installation lourde (Python 3.10, GPU)", "démo web statique avec requêtes précalculées"]],
+                     ["démo web limitée aux requêtes précalculées", "encodeur de texte léger exécuté dans le "
+                                                                    "navigateur (ONNX)"]],
                     [CW * 0.45, CW * 0.55])]
 
     # ---------------------------------------------------------- 14. entretien
@@ -1245,8 +1272,10 @@ def build():
                                                         "multilingue"],
                      ["Qu'est-ce qui n'a pas marché ?", "les surfaces texturées, avec la cause mesurée : la "
                                                        "similarité ne dépasse pas celle du négatif « texture »"],
-                     ["Que feriez-vous ensuite ?", "évaluer les 4 scènes, mesurer sur des vues mises de côté, "
-                                                   "faire une démo web"]],
+                     ["Comment l'avez-vous testé ?", "19 tests automatiques, dont un qui vérifie l'astuce du "
+                                                     "gradient sur GPU, relancés par GitHub Actions à chaque push"],
+                     ["Que feriez-vous ensuite ?", "évaluer les 4 scènes du benchmark, réduire l'écart entre vues "
+                                                   "d'entraînement et de test, requêtes libres dans la démo web"]],
                     [CW * 0.36, CW * 0.64])]
 
     # ---------------------------------------------------------- 15. glossaire
