@@ -52,7 +52,7 @@ SCENES=figurines bash scripts/run_lerf.sh
 | Étape | Temps (RTX 2070) | Résultat |
 |---|---|---|
 | Poses VGGT | 18 s | 50 caméras, 200 k points, 7,1 Go VRAM max |
-| Gaussian Splatting | 3 min 43 s (7000 itérations, 540×960) | 419 k gaussiennes, PSNR entraînement 29,7 dB |
+| Gaussian Splatting | 3 min 43 s (7000 itérations, 540×960) | 419 k gaussiennes, PSNR entraînement 29,7 dB ; sur 7 vues jamais vues (`--test-every 8`) : 24,8 dB, **25,1 dB avec la profondeur VGGT** |
 | SAM + SigLIP 2 | 3 min | 4127 masques (83 par image) |
 | Lifting 2D → 3D | 16 s (2 niveaux) | 402 k gaussiennes avec une feature, SVD 768 → 128 dims (98,3 % de l'énergie) |
 | Requête | 0,02 à 0,3 s | |
@@ -98,6 +98,7 @@ Chaque idée a été mesurée sur fox (nombre de gaussiennes surlignées + véri
 | Fond encodé par des carrés intérieurs plutôt qu'un crop troué | Aucun gain : le score reste au niveau du négatif « texture » | ❌ retiré |
 | Ensemble de prompts (« {} », « une photo de {} », « a photo of {} ») | Objets : « rideau rouge » 168 → 1080. Parties : « oreille du renard » surligne tout le renard | ⚖️ option *objet entier*, désactivée par défaut |
 | Retirer le négatif « texture » pour les surfaces | Aucun gain visible sur « carrelage », « parquet », « mur blanc » | ❌ non intégré |
+| Profondeur VGGT dans la perte d'entraînement (poids 0,1), 3 runs par configuration, 7 vues de test | PSNR test 24,81 ± 0,18 → **25,14 ± 0,04 dB** ; les 3 runs avec dépassent les 3 sans ; entraînement plus stable | ✅ activée par défaut quand la profondeur est disponible |
 
 ## Pipeline
 
@@ -114,7 +115,7 @@ vidéo ──► frames ──► VGGT ──► Gaussian Splatting ──┐
 |---|---|---|
 | 1. `frames` | [frames.py](lang3d/frames.py) | Découpe la vidéo, garde l'image la plus nette de chaque fenêtre (variance du Laplacien). |
 | 2. `poses` | [poses.py](lang3d/poses.py) | **VGGT** (Meta, CVPR 2025) prédit en une passe les caméras et une profondeur par image ; on en tire le nuage de points initial. |
-| 3. `train` | [train.py](lang3d/train.py) | **3D Gaussian Splatting** avec gsplat : perte L1 + D-SSIM, densification adaptative, harmoniques sphériques progressives. |
+| 3. `train` | [train.py](lang3d/train.py) | **3D Gaussian Splatting** avec gsplat : perte L1 + D-SSIM + profondeur VGGT, densification adaptative, harmoniques sphériques progressives. |
 | 4. `features` | [features.py](lang3d/features.py) | **SAM** découpe chaque image en masques (+ les zones non couvertes) ; chaque masque est encodé par **SigLIP 2** (multilingue). Deux niveaux : plus petit masque par pixel (parties) et plus grand (objets entiers). |
 | 5. `lift` | [lift.py](lang3d/lift.py) | Report des embeddings sur les gaussiennes **sans entraînement** (voir ci-dessous). |
 | 6. `view` / `query` | [viewer.py](lang3d/viewer.py), [query.py](lang3d/query.py) | Score de pertinence façon LERF, surbrillance dans un viewer web (viser) ou export `.ply`. |

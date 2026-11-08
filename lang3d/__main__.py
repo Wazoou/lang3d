@@ -41,8 +41,8 @@ def main():
     s.add_argument("--downscale", type=int, default=1)
     s.add_argument("--test-every", type=int, default=0,
                    help="met de côté 1 vue sur N pour mesurer PSNR/SSIM (modèle rangé dans gs_eval*/)")
-    s.add_argument("--depth-weight", type=float, default=0.0,
-                   help="poids de la régularisation par la profondeur VGGT (0 = désactivée)")
+    s.add_argument("--depth-weight", type=float, default=None,
+                   help="poids de la régularisation par la profondeur VGGT (défaut : 0,1 si disponible ; 0 = désactivée)")
 
     s = sub.add_parser("features", help="masques SAM + embeddings SigLIP 2")
     s.add_argument("scene", type=Path)

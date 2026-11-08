@@ -69,7 +69,7 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] Variante *objet entier* : IoU 52,9 % (indicatif, non retenue comme chiffre principal)
 - [ ] Évaluer les 3 autres scènes (ramen, teatime, waldo_kitchen) pour une moyenne comparable aux papiers
 - [x] Mesurer la qualité RGB sur des vues mises de côté (`train --test-every 8`) — fox : PSNR test 25,0 dB contre 31,2 dB en entraînement
-- [~] Régularisation par la profondeur VGGT (`train --depth-weight`) : +0,18 dB au poids 0,1 sur un seul run → répétitions en cours pour mesurer le bruit
+- [x] Régularisation par la profondeur VGGT (`train --depth-weight`), 3 runs par configuration : PSNR test 24,81 ± 0,18 → 25,14 ± 0,04 dB (poids 0,1 ; poids 0,3 : 25,07 sur 1 run) → activée par défaut quand la profondeur est disponible
 
 ## Phase 9 — Qualité logicielle et démo publique
 - [x] 19 tests pytest (requêtes, COLMAP, protocole d'évaluation, frames, padding, clic, format .splat, astuce du gradient sur GPU)
