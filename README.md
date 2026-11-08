@@ -77,6 +77,7 @@ compare la requête à des négatifs génériques (« object », « things »,
 ## Installation (Windows, GPU NVIDIA)
 
 ```bash
+git clone https://github.com/Wazoou/lang3d.git && cd lang3d
 uv venv .venv --python 3.10
 uv pip install --python .venv/Scripts/python.exe -r requirements.txt --index-strategy unsafe-best-match
 uv pip install --python .venv/Scripts/python.exe --no-deps "vggt @ git+https://github.com/facebookresearch/vggt"

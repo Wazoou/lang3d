@@ -50,7 +50,7 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] Test de bout en bout sur une scène publique (fox d'instant-ngp, 50 images)
 - [ ] Test sur une vidéo filmée au téléphone
 - [~] README avec explications, résultats et captures — fait ; GIF de démo à ajouter
-- [~] Repo GitHub propre pour le CV — dépôt local et premier commit faits ; reste à créer le repo GitHub et pousser
+- [x] Repo GitHub public pour le CV : https://github.com/Wazoou/lang3d
 
 ## Pistes d'amélioration (à ajouter au fil de l'eau)
 - [ ] Fonds texturés (papier peint, sol) : encoder la zone non couverte sans trous (inpainting ou crop de la bounding box entière)
