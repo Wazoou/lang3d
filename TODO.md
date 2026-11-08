@@ -75,10 +75,12 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] 19 tests pytest (requêtes, COLMAP, protocole d'évaluation, frames, padding, clic, format .splat, astuce du gradient sur GPU)
 - [x] GitHub Actions : tests sur Linux CPU à chaque push
 - [x] Viewer : « Sélectionner en cliquant » — requête par l'exemple à partir de la gaussienne cliquée
-- [x] Démo web statique (`export-web`, gsplat.js) : scène fox + 5 requêtes précalculées, 9,3 Mo, testée dans le navigateur
+- [x] Démo web statique (`export-web`, gsplat.js) : scène fox + 5 requêtes précalculées + sélection au clic (vecteurs 16 dims, corrélation 0,989), 13,3 Mo, testée dans le navigateur
+- [x] Découverte : un clic sur une rose surligne toutes les roses du papier peint, là où les requêtes texte échouent (la requête par l'exemple contourne le négatif « texture »)
 - [ ] Activer GitHub Pages (Settings → Pages → `main` / `docs`) pour publier la démo
 
 ## Pistes d'amélioration (à ajouter au fil de l'eau)
+- [x] ~~Accélérer SAM avec des paquets de points plus gros~~ → mesuré : 64 points/paquet = 3,21 s/image (2,9 Go), 128 = 4,62 s/image (4,7 Go), 256 sature la VRAM ; le défaut (64) est le meilleur. Piste suivante : SAM 2 ou EfficientSAM
 - [ ] Objets fins (pieds de chaise) et petits objets (« pirate hat ») : principales erreurs sur figurines
 - [x] ~~Fonds texturés : carrés intérieurs au lieu du crop troué~~ → testé, aucun gain (le fond reste au niveau du négatif « texture »), retiré
 - [x] ~~Requêtes courtes : ensemble de prompts~~ → testé : aide les objets (« rideau rouge » 168 → 1080) mais noie les parties (« oreille du renard » → tout le renard) ; gardé en option

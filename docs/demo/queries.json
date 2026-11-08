@@ -23,6 +23,7 @@
    "level": "large"
   }
  ],
+ "feature_dim": 16,
  "camera": {
   "position": [
    -0.0814,

@@ -182,6 +182,12 @@ Options de requête (viewer et `query`) :
 
 *Un seul clic sur le renard : la tête et sa plaque sont isolées (121 259 gaussiennes), plus proprement qu'avec la requête texte.*
 
+![Un clic sur une rose](docs/clic_roses.jpg)
+
+*Dans la démo web, un clic sur **une** rose surligne **toutes** les roses du papier peint, ce qu'aucune
+requête texte ne réussit : comparer directement les vecteurs de sens contourne la limite du score LERF sur
+les textures (voir « Limites connues »).*
+
 Pour un dossier d'images existant, mettre les images dans `scenes/<nom>/images/`
 et commencer à l'étape `poses`.
 
@@ -199,7 +205,9 @@ python -m http.server 8765 --directory docs/demo     # → http://localhost:8765
 
 `export-web` produit une page autonome dans `docs/demo/` : les gaussiennes au format
 `.splat` (250 000 au maximum, ~8 Mo), un score par gaussienne et par requête
-précalculée, et un viewer [gsplat.js](https://github.com/huggingface/gsplat.js)
+précalculée, un vecteur de sens compressé par gaussienne (16 dimensions sur 1 octet,
+corrélation des similarités 0,989 avec les 128 dimensions d'origine) pour la
+**sélection au clic**, et un viewer [gsplat.js](https://github.com/huggingface/gsplat.js)
 chargé depuis un CDN. Aucun serveur Python ni GPU n'est nécessaire pour la
 consulter : elle peut être publiée telle quelle avec GitHub Pages
 (*Settings → Pages → Branch `main`, dossier `/docs`*), à l'adresse

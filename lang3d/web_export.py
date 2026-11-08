@@ -4,6 +4,7 @@ Fichiers produits dans `out_dir` :
   scene.splat    gaussiennes au format .splat (32 octets chacune : position, échelle, RGBA, rotation)
   queries.bin    pour chaque requête, un score 0-255 par gaussienne (même ordre que scene.splat)
   queries.json   libellés, niveaux, seuil par défaut et point de vue initial
+  features.bin   un vecteur de sens compressé par gaussienne (int8), pour la sélection au clic
   index.html, app.js   la page (gsplat.js, chargé depuis un CDN)
 
 SigLIP 2 ne tourne pas dans le navigateur : les requêtes sont donc calculées ici,
@@ -69,7 +70,7 @@ def to_splat_bytes(pos, scales, rgba, quats) -> bytes:
 
 
 def export_web(scene_dir: Path, queries: list[str], out_dir: Path, max_gaussians: int = 250_000,
-               threshold: float = 0.5, device: str = "cuda"):
+               threshold: float = 0.5, feature_dim: int = 16, device: str = "cuda"):
     splats, _, up = load_splats(scene_dir / "gs" / "splats.pt", device)
     frames, xyz, _ = load_scene(scene_dir)
     opacity = torch.sigmoid(splats["opacities"])
@@ -106,11 +107,25 @@ def export_web(scene_dir: Path, queries: list[str], out_dir: Path, max_gaussians
         print(f"  « {text} » [{level}] : {(s[order] > threshold).sum().item()} gaussiennes au-dessus du seuil")
     (out_dir / "queries.bin").write_bytes(np.concatenate(blocks).tobytes())
 
+    # Sélection au clic dans le navigateur : un vecteur de sens par gaussienne, compressé en
+    # `feature_dim` dimensions (SVD des features du niveau « large ») et quantifié sur 1 octet.
+    feats = q.feats["large"][order]
+    valid = q.valid["large"][order]
+    _, _, Vh = torch.linalg.svd(feats[valid], full_matrices=False)
+    low = torch.nn.functional.normalize(feats @ Vh[:feature_dim].T, dim=-1)
+    low[~valid] = 0
+    (out_dir / "features.bin").write_bytes((low * 127).round().to(torch.int8).cpu().numpy().tobytes())
+    # Fidélité de la compression : corrélation des similarités avant / après, sur un échantillon.
+    idx = torch.randperm(int(valid.sum()), device=feats.device)[:2000]
+    ref, sub = feats[valid][idx[:20]], feats[valid][idx]
+    fid = torch.corrcoef(torch.stack([(ref @ sub.T).flatten(), (low[valid][idx[:20]] @ low[valid][idx].T).flatten()]))[0, 1]
+    print(f"  features {feature_dim} dims pour la sélection au clic (corrélation des similarités : {fid:.3f})")
+
     cam0 = frames[0].cam_center
     forward = frames[0].viewmat[2, :3]
     target = cam0 + forward * np.linalg.norm(np.median(xyz, 0) - cam0)
     (out_dir / "queries.json").write_text(json.dumps({
-        "count": int(len(sel)), "threshold": threshold, "queries": meta,
+        "count": int(len(sel)), "threshold": threshold, "queries": meta, "feature_dim": feature_dim,
         "camera": {"position": ((cam0 - center) @ R.T).round(4).tolist(),
                    "target": ((target - center) @ R.T).round(4).tolist()},
     }, ensure_ascii=False, indent=1))
