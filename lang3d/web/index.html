@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lang3d — démo</title>
+  <style>
+    :root {
+      --ink: #eef1f7; --muted: #9aa3b5; --panel: rgba(18, 22, 32, 0.86); --line: rgba(255, 255, 255, 0.10);
+      --accent: #ff5a46; --chip: rgba(255, 255, 255, 0.07); --chip-hover: rgba(255, 255, 255, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #0d1018; color: var(--ink);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif; overflow: hidden; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    .panel { position: fixed; top: 16px; left: 16px; width: 330px; max-height: calc(100% - 32px); overflow: auto;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 14px;
+      backdrop-filter: blur(10px); }
+    h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: 0.2px; }
+    .sub { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 0 0 14px; }
+    .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 12px 0 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 999px;
+      padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .chip:hover { background: var(--chip-hover); }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .row { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 10px; }
+    .row input[type=range] { flex: 1; accent-color: var(--accent); }
+    .row input[type=checkbox] { accent-color: var(--accent); }
+    .status { font-size: 12.5px; color: var(--muted); min-height: 18px; margin-top: 12px; }
+    .foot { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; font-size: 12px; color: var(--muted);
+      line-height: 1.5; }
+    a { color: #9fb6ff; }
+    .loading { position: fixed; inset: 0; display: grid; place-items: center; font-size: 15px; color: var(--muted);
+      pointer-events: none; }
+    .help { position: fixed; right: 16px; bottom: 14px; font-size: 12px; color: var(--muted);
+      background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+    @media (max-width: 640px) {
+      .panel { top: auto; bottom: 0; left: 0; width: 100%; max-height: 46%; border-radius: 14px 14px 0 0; }
+      .help { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="loading" id="loading">Chargement de la scène…</div>
+  <div class="panel">
+    <h1>lang3d</h1>
+    <p class="sub">Une scène 3D reconstruite en Gaussian Splatting, que l'on interroge en langage naturel.
+      Choisis une requête : les gaussiennes correspondantes s'allument en rouge.</p>
+    <div class="label">Requêtes</div>
+    <div class="chips" id="chips"></div>
+    <div class="row"><span>Seuil</span><input id="threshold" type="range" min="0" max="0.95" step="0.01"><span id="thv"></span></div>
+    <label class="row"><input id="isolate" type="checkbox"> Isoler l'objet</label>
+    <div class="status" id="status"></div>
+    <div class="foot">Requêtes précalculées avec SigLIP 2 (multilingue) ; pour une requête libre, lancer
+      le viewer local. Code : <a href="https://github.com/Wazoou/lang3d">github.com/Wazoou/lang3d</a></div>
+  </div>
+  <div class="help">glisser : tourner · clic droit : déplacer · molette : zoom</div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

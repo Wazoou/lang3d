@@ -39,6 +39,10 @@ def main():
     s.add_argument("scene", type=Path)
     s.add_argument("--steps", type=int, default=7000)
     s.add_argument("--downscale", type=int, default=1)
+    s.add_argument("--test-every", type=int, default=0,
+                   help="met de côté 1 vue sur N pour mesurer PSNR/SSIM (modèle rangé dans gs_eval*/)")
+    s.add_argument("--depth-weight", type=float, default=0.0,
+                   help="poids de la régularisation par la profondeur VGGT (0 = désactivée)")
 
     s = sub.add_parser("features", help="masques SAM + embeddings SigLIP 2")
     s.add_argument("scene", type=Path)
@@ -68,6 +72,12 @@ def main():
     s.add_argument("--threshold", type=float, default=0.4)
     s.add_argument("--objet-entier", action="store_true")
 
+    s = sub.add_parser("export-web", help="démo web statique (GitHub Pages) avec requêtes précalculées")
+    s.add_argument("scene", type=Path)
+    s.add_argument("queries", nargs="+")
+    s.add_argument("--out", type=Path, default=Path("docs/demo"))
+    s.add_argument("--max-gaussians", type=int, default=250_000)
+
     s = sub.add_parser("demo", help="GIF de démo le long de la trajectoire filmée")
     s.add_argument("scene", type=Path)
     s.add_argument("text")
@@ -85,7 +95,7 @@ def main():
         import_colmap(a.scene, a.sparse)
     elif a.cmd == "train":
         from .train import train
-        train(a.scene, a.steps, a.downscale)
+        train(a.scene, a.steps, a.downscale, test_every=a.test_every, depth_weight=a.depth_weight)
     elif a.cmd == "features":
         from .features import extract_features
         extract_features(a.scene, a.max_side)
@@ -101,6 +111,9 @@ def main():
     elif a.cmd == "evaluate":
         from .evaluate import evaluate
         evaluate(a.root, a.scenes, a.threshold, a.objet_entier)
+    elif a.cmd == "export-web":
+        from .web_export import export_web
+        export_web(a.scene, a.queries, a.out, a.max_gaussians)
     elif a.cmd == "demo":
         from .demo import make_demo
         make_demo(a.scene, a.text, a.out)
