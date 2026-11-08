@@ -96,8 +96,14 @@ def estimate_poses(scene_dir: Path, max_frames: int = 40, conf_quantile: float =
     viewmats = np.tile(np.eye(4), (len(paths), 1, 1))
     viewmats[:, :3, :4] = extr
 
+    # Profondeurs gardées pour régulariser l'entraînement (`train --depth-weight`) :
+    # on ne garde que la zone utile, sans les bandes de padding.
+    rows, cols = np.nonzero(valid.any(1))[0], np.nonzero(valid.any(0))[0]
+    crop = (slice(None), slice(rows[0], rows[-1] + 1), slice(cols[0], cols[-1] + 1))
     np.savez(
         scene_dir / "poses.npz",
+        depth=depth[..., 0][crop].astype(np.float16),
+        depth_conf=conf[crop].astype(np.float16),
         names=np.array([p.name for p in paths]),
         K=K.astype(np.float32),
         viewmats=viewmats.astype(np.float32),

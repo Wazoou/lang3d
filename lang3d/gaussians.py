@@ -57,7 +57,7 @@ def init_splats(xyz: np.ndarray, rgb: np.ndarray, sh_degree: int, device="cuda")
 
 
 def render(splats, viewmat: torch.Tensor, K: torch.Tensor, width: int, height: int,
-           colors: torch.Tensor | None = None, sh_degree: int | None = None):
+           colors: torch.Tensor | None = None, sh_degree: int | None = None, render_mode: str = "RGB"):
     """Rend une vue. Par défaut la couleur RGB (SH) ; sinon `colors` (N, D) quelconque.
 
     `colors` permet de « splatter » n'importe quel vecteur par gaussienne :
@@ -81,6 +81,7 @@ def render(splats, viewmat: torch.Tensor, K: torch.Tensor, width: int, height: i
         height=height,
         sh_degree=sh_degree,
         packed=False,
+        render_mode=render_mode,  # "RGB+ED" ajoute un canal de profondeur attendue
     )
 
 
