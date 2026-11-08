@@ -16,6 +16,11 @@ from .gaussians import export_ply, load_splats, rgb_to_sh, sh_to_rgb
 
 NEGATIVES = ["object", "things", "stuff", "texture"]
 TEMPERATURE = 10.0
+# Texte brut par défaut (comme LERF). L'ensemble de prompts façon CLIP, testé sur
+# fox, aide les objets entiers (« rideau rouge » : 168 → 1080 gaussiennes) mais
+# noie les parties (« oreille du renard » finit par surligner tout le renard).
+TEMPLATES = ["{}"]
+OBJECT_TEMPLATES = ["{}", "une photo de {}", "a photo of {}"]
 
 _FILLERS = re.compile(
     r"^(où\s+(est|sont|se\s+trouvent?|se\s+situent?)|montre[-\s]?moi|trouve[-\s]?moi|cherche|"
@@ -40,24 +45,36 @@ class SceneQuery:
         self.feats = {lvl: f.float().to(device) for lvl, f in d["feats"].items()}
         self.valid = {lvl: v.to(device) for lvl, v in d["valid"].items()}
         self.enc = Encoder(tuple(d["model"]), device)
-        self.neg = self.enc.encode_text(NEGATIVES) @ self.P
+        self.neg = {
+            False: self.embed(NEGATIVES, TEMPLATES),
+            True: self.embed(NEGATIVES, OBJECT_TEMPLATES),
+        }
 
-    def relevancy(self, text: str) -> tuple[torch.Tensor, str]:
-        """Pertinence par gaussienne, au niveau de masques le plus pertinent (comme LangSplat)."""
-        q = self.enc.encode_text([clean_query(text)]) @ self.P
+    def embed(self, texts: list[str], templates: list[str]) -> torch.Tensor:
+        """Embedding moyen sur les templates, projeté dans la base SVD → (len(texts), dim)."""
+        prompts = [t.format(x) for x in texts for t in templates]
+        emb = self.enc.encode_text(prompts).view(len(texts), len(templates), -1).mean(1)
+        return torch.nn.functional.normalize(emb, dim=-1) @ self.P
+
+    def relevancy(self, text: str, level: str | None = None, ensemble: bool = False) -> tuple[torch.Tensor, str]:
+        """Pertinence par gaussienne, au niveau imposé ou, par défaut, au niveau de masques
+        le plus pertinent (comme LangSplat). `ensemble` active OBJECT_TEMPLATES."""
+        q = self.embed([clean_query(text)], OBJECT_TEMPLATES if ensemble else TEMPLATES)
+        negs = self.neg[ensemble]
         best = None
-        for lvl, feats in self.feats.items():
+        for lvl in [level] if level else self.feats:
+            feats = self.feats[lvl]
             pos = feats @ q.T          # (N, 1)
-            neg = feats @ self.neg.T   # (N, len(NEGATIVES))
+            neg = feats @ negs.T       # (N, len(NEGATIVES))
             rel = torch.sigmoid(TEMPERATURE * (pos - neg)).min(dim=1).values
             rel[~self.valid[lvl]] = 0
             if best is None or rel.max() > best[0].max():
                 best = (rel, lvl)
         return best
 
-    def scores(self, text: str) -> tuple[torch.Tensor, str]:
+    def scores(self, text: str, level: str | None = None, ensemble: bool = False) -> tuple[torch.Tensor, str]:
         """Pertinence renormalisée dans [0, 1] : 0 = pas mieux qu'un négatif, 1 = meilleure gaussienne."""
-        rel, lvl = self.relevancy(text)
+        rel, lvl = self.relevancy(text, level, ensemble)
         return ((rel - 0.5) / (rel.max() - 0.5).clamp_min(1e-6)).clamp(0, 1), lvl
 
 
@@ -71,9 +88,10 @@ def highlight(rgb: torch.Tensor, scores: torch.Tensor, threshold: float):
     return colors, hit
 
 
-def export_query(scene_dir: Path, text: str, threshold: float = 0.5, out: Path | None = None):
+def export_query(scene_dir: Path, text: str, threshold: float = 0.5, out: Path | None = None,
+                 level: str | None = None, ensemble: bool = False):
     splats, _, _ = load_splats(scene_dir / "gs" / "splats.pt")
-    scores, level = SceneQuery(scene_dir).scores(text)
+    scores, level = SceneQuery(scene_dir).scores(text, level, ensemble)
     colors, hit = highlight(sh_to_rgb(splats["sh0"][:, 0]), scores, threshold)
     # Sans les harmoniques d'ordre supérieur, la couleur ne dépend plus de l'angle : la surbrillance reste visible.
     flat = dict(splats, shN=torch.zeros_like(splats["shN"]))

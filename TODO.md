@@ -12,8 +12,9 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] Forcer l'UTF-8 dans la console Windows (accents et flèches dans les logs)
 
 ## Phase 1 — Vidéo → images
-- [~] Extraction des frames (OpenCV), une par fenêtre temporelle — code écrit, à tester sur une vraie vidéo
-- [~] Garder la frame la plus nette de chaque fenêtre (variance du Laplacien) — code écrit, à tester
+- [x] Extraction des frames (OpenCV), une par fenêtre temporelle — testé sur une vidéo synthétique (300 frames → 50)
+- [x] Garder la frame la plus nette de chaque fenêtre (variance du Laplacien) — 50/50 frames nettes retrouvées parmi 5 copies floutées
+- [ ] Valider sur une vraie vidéo de téléphone (rotation, compression, flou de bougé réel)
 
 ## Phase 2 — Poses de caméra
 - [x] ~~COLMAP via pycolmap~~ → abandonné : Windows (Smart App Control) bloque la DLL non signée de pycolmap
@@ -45,16 +46,21 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] Nettoyage des requêtes en français ("Où est la chaise rouge ?" → "chaise rouge") — testé
 - [x] Viewer web (viser) : champ texte, seuil, surbrillance en rouge, mode "isoler" — testé dans le navigateur
 - [x] Export `.ply` avec surbrillance (`python -m lang3d query`) — testé (`scenes/fox/gs/query_renard.ply`)
+- [x] Choix du niveau de masques (auto / small / large) dans le viewer et `--level` en CLI
+- [x] Option « objet entier » (ensemble de prompts) dans le viewer et `--objet-entier` en CLI — testé dans le navigateur
 
 ## Phase 7 — Test et démo
 - [x] Test de bout en bout sur une scène publique (fox d'instant-ngp, 50 images)
 - [ ] Test sur une vidéo filmée au téléphone
-- [~] README avec explications, résultats et captures — fait ; GIF de démo à ajouter
+- [x] README avec explications, résultats, captures et tableau « ce qui a été essayé »
+- [x] GIF de démo (`python -m lang3d demo`) : trajectoire interpolée, 98 images, 3,8 Mo
 - [x] Repo GitHub public pour le CV : https://github.com/Wazoou/lang3d
 
 ## Pistes d'amélioration (à ajouter au fil de l'eau)
-- [ ] Fonds texturés (papier peint, sol) : encoder la zone non couverte sans trous (inpainting ou crop de la bounding box entière)
-- [ ] Requêtes courtes (« les oreilles ») : prompts multiples (« une photo de {} ») et moyenne des embeddings texte
+- [x] ~~Fonds texturés : carrés intérieurs au lieu du crop troué~~ → testé, aucun gain (le fond reste au niveau du négatif « texture »), retiré
+- [x] ~~Requêtes courtes : ensemble de prompts~~ → testé : aide les objets (« rideau rouge » 168 → 1080) mais noie les parties (« oreille du renard » → tout le renard) ; gardé en option
+- [ ] Fonds texturés, piste suivante : retirer « texture » des négatifs quand la requête désigne une surface (papier peint, sol, mur)
+- [ ] Requêtes courtes, piste suivante : compléter automatiquement le contexte de la scène (« oreilles » → « oreilles du renard ») avec l'objet le plus pertinent
 - [ ] Plus de 50 vues : VGGT par blocs qui se chevauchent + alignement Sim(3) entre blocs
 - [ ] Rendu de la carte de pertinence en 2D (heatmap) en plus de la surbrillance 3D
 - [ ] Évaluation quantitative (mIoU sur le dataset LERF / 3D-OVS)

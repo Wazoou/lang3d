@@ -9,6 +9,8 @@ Approche inspirée de [LERF](https://www.lerf.io/) et
 [LangSplat](https://langsplat.github.io/), adaptée pour tourner sur un GPU
 grand public (RTX 2070, 8 Go).
 
+![Démo : « Où est le renard ? »](docs/demo.gif)
+
 ![Viewer : « Où est le renard ? »](docs/viewer_renard.jpg)
 
 ## Résultats sur la scène « fox » (instant-ngp, 50 photos)
@@ -29,8 +31,21 @@ Requêtes en français (gaussiennes au-dessus du seuil en rouge) :
 
 ![Requêtes](docs/requetes_fox.jpg)
 
-- ✅ « renard », « rideau rouge », « oreille du renard » (pointes des oreilles), « cadre photo » (en bord de vue)
+- ✅ « renard », « oreille du renard » (pointes des oreilles), « cadre photo » (en bord de vue)
+- ✅ « rideau rouge » avec l'option *objet entier* (1080 gaussiennes, tout le rideau ; 168 sans)
 - ❌ « papier peint à fleurs », « plaque en bois » : seuls quelques fragments ressortent (voir limites)
+
+## Ce qui a été essayé
+
+Chaque idée a été mesurée sur fox (nombre de gaussiennes surlignées + vérification visuelle) avant d'être gardée.
+
+| Essai | Résultat | Décision |
+|---|---|---|
+| Un seul niveau (plus petit masque SAM par pixel) | Parties d'objets OK, mais les grands objets sont morcelés | → deux niveaux |
+| Deux niveaux `small` / `large` (comme LangSplat), meilleur niveau choisi par requête | « cadre photo » et « rideau rouge » passent au niveau `large` | ✅ gardé, niveau forçable dans le viewer |
+| Zones non couvertes par SAM ajoutées comme masques | Le fond (29 % de l'image) a enfin une feature | ✅ gardé |
+| Fond encodé par des carrés intérieurs plutôt qu'un crop troué | Aucun gain : le score reste au niveau du négatif « texture » | ❌ retiré |
+| Ensemble de prompts (« {} », « une photo de {} », « a photo of {} ») | Objets : « rideau rouge » 168 → 1080. Parties : « oreille du renard » surligne tout le renard | ⚖️ option *objet entier*, désactivée par défaut |
 
 ## Pipeline
 
@@ -51,6 +66,7 @@ vidéo ──► frames ──► VGGT ──► Gaussian Splatting ──┐
 | 4. `features` | [features.py](lang3d/features.py) | **SAM** découpe chaque image en masques (+ les zones non couvertes) ; chaque masque est encodé par **SigLIP 2** (multilingue). Deux niveaux : plus petit masque par pixel (parties) et plus grand (objets entiers). |
 | 5. `lift` | [lift.py](lang3d/lift.py) | Report des embeddings sur les gaussiennes **sans entraînement** (voir ci-dessous). |
 | 6. `view` / `query` | [viewer.py](lang3d/viewer.py), [query.py](lang3d/query.py) | Score de pertinence façon LERF, surbrillance dans un viewer web (viser) ou export `.ply`. |
+| 7. `demo` | [demo.py](lang3d/demo.py) | GIF le long de la trajectoire filmée (caméras interpolées), scène puis requête surlignée. |
 
 ## Les idées clés
 
@@ -96,7 +112,13 @@ python -m lang3d features scenes/salon
 python -m lang3d lift     scenes/salon
 python -m lang3d view     scenes/salon        # → http://localhost:8080
 python -m lang3d query    scenes/salon "où est la chaise rouge ?"   # export .ply
+python -m lang3d demo     scenes/salon "où est la chaise rouge ?"   # → docs/demo.gif
 ```
+
+Options de requête (viewer et `query`) :
+- **Niveau** (`--level small|large`) : `small` pour une partie d'objet (« oreille »), `large` pour un objet entier ; par défaut, le plus pertinent.
+- **Objet entier** (`--objet-entier`) : ensemble de prompts, mieux pour les objets, moins bien pour les parties.
+- **Seuil** et **Isoler** (viewer) : régler la sélection et masquer le reste de la scène.
 
 Pour un dossier d'images existant, mettre les images dans `scenes/<nom>/images/`
 et commencer à l'étape `poses`.
@@ -107,7 +129,7 @@ le flou, les reflets et les zones très sombres.
 ## Limites connues
 
 - VGGT tient environ 40 à 50 images sur 8 Go de VRAM : moins de vues que COLMAP, donc un splatting moins net hors des points de vue filmés.
-- Grands fonds texturés (papier peint, sol) : SAM ne les segmente pas d'un bloc. Les zones non couvertes sont ajoutées comme masques, mais ces crops troués ne ressemblent pas à « du papier peint » pour SigLIP.
+- Grands fonds texturés (papier peint, sol) : SAM ne les segmente pas d'un bloc, et même une fois encodés, leur similarité avec « papier peint à fleurs » (~0,07–0,10) ne dépasse pas celle du négatif « texture » (~0,09). Le score LERF les neutralise donc par construction.
 - Objets en grande partie cachés (la plaque derrière la tête du renard) : leurs crops sont trop petits pour être reconnus.
 - Requêtes très courtes et sans contexte (« les oreilles ») : moins fiables que « oreille du renard ».
 - COLMAP n'est pas utilisable ici : Smart App Control (Windows) bloque la DLL non signée de pycolmap.

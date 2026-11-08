@@ -53,6 +53,15 @@ def main():
     s.add_argument("text")
     s.add_argument("--threshold", type=float, default=0.5)
     s.add_argument("--out", type=Path, default=None)
+    s.add_argument("--level", choices=["small", "large"], default=None,
+                   help="niveau de masques (défaut : le plus pertinent)")
+    s.add_argument("--objet-entier", action="store_true",
+                   help="ensemble de prompts : mieux pour les objets, moins bien pour les parties")
+
+    s = sub.add_parser("demo", help="GIF de démo le long de la trajectoire filmée")
+    s.add_argument("scene", type=Path)
+    s.add_argument("text")
+    s.add_argument("--out", type=Path, default=Path("docs/demo.gif"))
 
     a = p.parse_args()
     if a.cmd == "frames":
@@ -75,7 +84,10 @@ def main():
         run_viewer(a.scene, a.port)
     elif a.cmd == "query":
         from .query import export_query
-        export_query(a.scene, a.text, a.threshold, a.out)
+        export_query(a.scene, a.text, a.threshold, a.out, a.level, a.objet_entier)
+    elif a.cmd == "demo":
+        from .demo import make_demo
+        make_demo(a.scene, a.text, a.out)
 
 
 if __name__ == "__main__":

@@ -57,6 +57,13 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
 
     server.gui.add_markdown("### Scène 3D interrogeable\nTape un objet, en français ou en anglais.")
     text = server.gui.add_text("Requête", "Où est le renard ?")
+    level = server.gui.add_dropdown(
+        "Niveau", ("auto", "small", "large"), initial_value="auto",
+        hint="small = parties d'objets (oreille), large = objets entiers (renard)",
+    )
+    ensemble = server.gui.add_checkbox(
+        "Objet entier", False, hint="Moyenne « {} » / « une photo de {} » : mieux pour les objets, moins bien pour les parties",
+    )
     search = server.gui.add_button("Chercher")
     threshold = server.gui.add_slider("Seuil", 0.0, 1.0, 0.01, 0.5)
     isolate = server.gui.add_checkbox("Isoler", False)
@@ -77,7 +84,9 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
     @search.on_click
     def _(_):
         t0 = time.time()
-        scores, state["level"] = query.scores(text.value)
+        scores, state["level"] = query.scores(
+            text.value, None if level.value == "auto" else level.value, ensemble.value
+        )
         state["scores"] = scores[keep]
         refresh()
         status.content += (
