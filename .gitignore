@@ -6,3 +6,4 @@ scenes/
 *.pt
 *.npz
 data/
+guide/*.pdf
