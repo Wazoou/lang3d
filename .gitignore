@@ -7,3 +7,4 @@ scenes/
 *.npz
 data/
 guide/*.pdf
+*.egg-info/

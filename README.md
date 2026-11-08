@@ -1,5 +1,7 @@
 # lang3d — Scène 3D interrogeable en langage naturel
 
+[![tests](https://github.com/Wazoou/lang3d/actions/workflows/tests.yml/badge.svg)](https://github.com/Wazoou/lang3d/actions/workflows/tests.yml)
+
 À partir d'une simple vidéo filmée au téléphone, lang3d reconstruit la scène en
 **Gaussian Splatting** et attache à chaque gaussienne un **embedding
 vision-langage** (SigLIP 2). On peut ensuite taper « où est la chaise rouge ? »
@@ -150,7 +152,8 @@ uv pip install --python .venv/Scripts/python.exe --no-deps "vggt @ git+https://g
 ```
 
 Python 3.10 est imposé par la wheel gsplat précompilée pour Windows (pas besoin
-du CUDA Toolkit ni de Visual Studio).
+du CUDA Toolkit ni de Visual Studio). Optionnel : `pip install -e .` installe la
+commande `lang3d` (équivalente à `python -m lang3d`).
 
 ## Utilisation
 

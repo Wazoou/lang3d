@@ -1,2 +1,23 @@
+[project]
+name = "lang3d"
+version = "0.2.0"
+description = "Vidéo → Gaussian Splatting → scène 3D interrogeable en langage naturel"
+readme = "README.md"
+requires-python = ">=3.10"
+# Dépendances : voir requirements.txt (torch / gsplat épinglés pour Windows + CUDA 12.4).
+
+[project.scripts]
+lang3d = "lang3d.__main__:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["lang3d*"]
+
+[tool.setuptools.package-data]
+lang3d = ["web/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
