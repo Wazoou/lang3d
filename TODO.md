@@ -59,7 +59,19 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [x] GIF de démo (`python -m lang3d demo`) : trajectoire interpolée, 98 images, 3,8 Mo
 - [x] Repo GitHub public pour le CV : https://github.com/Wazoou/lang3d
 
+## Phase 8 — Évaluation chiffrée (benchmark LERF)
+- [x] Dataset `lerf_ovs` (LERF annoté par LangSplat) : 4 scènes, 22 vues annotées
+- [x] Lecteur COLMAP binaire en Python pur (`python -m lang3d colmap`) pour réutiliser les poses du benchmark
+- [x] Protocole de LangSplat reproduit à l'identique (lissage vérifié identique à 100 % sur des masques aléatoires)
+- [x] Chiffres de référence vérifiés dans le papier LangSplat (tableaux 1 et 2)
+- [x] figurines : localisation 83,9 % / IoU 49,0 % (LERF 75,0 / 38,6 ; LangSplat 80,4 / 44,7)
+- [x] Contrôle avec requêtes mélangées : 1,8 % / 1,7 % → l'évaluation est saine
+- [x] Variante *objet entier* : IoU 52,9 % (indicatif, non retenue comme chiffre principal)
+- [ ] Évaluer les 3 autres scènes (ramen, teatime, waldo_kitchen) pour une moyenne comparable aux papiers
+- [ ] Mesurer la qualité RGB sur des vues mises de côté (PSNR de test)
+
 ## Pistes d'amélioration (à ajouter au fil de l'eau)
+- [ ] Objets fins (pieds de chaise) et petits objets (« pirate hat ») : principales erreurs sur figurines
 - [x] ~~Fonds texturés : carrés intérieurs au lieu du crop troué~~ → testé, aucun gain (le fond reste au niveau du négatif « texture »), retiré
 - [x] ~~Requêtes courtes : ensemble de prompts~~ → testé : aide les objets (« rideau rouge » 168 → 1080) mais noie les parties (« oreille du renard » → tout le renard) ; gardé en option
 - [x] ~~Fonds texturés : retirer « texture » des négatifs~~ → testé sur bottle, aucun gain visible sur « carrelage », « parquet », « mur blanc »
@@ -67,4 +79,4 @@ Légende : `[x]` fait · `[~]` en cours · `[ ]` à faire
 - [ ] Requêtes courtes, piste suivante : compléter automatiquement le contexte de la scène (« oreilles » → « oreilles du renard ») avec l'objet le plus pertinent
 - [ ] Plus de 50 vues : VGGT par blocs qui se chevauchent + alignement Sim(3) entre blocs
 - [ ] Rendu de la carte de pertinence en 2D (heatmap) en plus de la surbrillance 3D
-- [ ] Évaluation quantitative (mIoU sur le dataset LERF / 3D-OVS)
+- [x] ~~Évaluation quantitative~~ → faite sur LERF figurines (Phase 8)

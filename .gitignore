@@ -5,3 +5,4 @@ scenes/
 *.ply
 *.pt
 *.npz
+data/

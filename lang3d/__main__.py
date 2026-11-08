@@ -31,6 +31,10 @@ def main():
     s.add_argument("scene", type=Path)
     s.add_argument("--max-frames", type=int, default=40)
 
+    s = sub.add_parser("colmap", help="importer des poses COLMAP existantes (au lieu de VGGT)")
+    s.add_argument("scene", type=Path)
+    s.add_argument("--sparse", default="sparse/0")
+
     s = sub.add_parser("train", help="entraînement Gaussian Splatting")
     s.add_argument("scene", type=Path)
     s.add_argument("--steps", type=int, default=7000)
@@ -58,6 +62,12 @@ def main():
     s.add_argument("--objet-entier", action="store_true",
                    help="ensemble de prompts : mieux pour les objets, moins bien pour les parties")
 
+    s = sub.add_parser("evaluate", help="mIoU et localisation sur le benchmark LERF (lerf_ovs)")
+    s.add_argument("root", type=Path, help="dossier lerf_ovs (contient label/ et une scène par dossier)")
+    s.add_argument("--scenes", nargs="+", default=["figurines", "ramen", "teatime", "waldo_kitchen"])
+    s.add_argument("--threshold", type=float, default=0.4)
+    s.add_argument("--objet-entier", action="store_true")
+
     s = sub.add_parser("demo", help="GIF de démo le long de la trajectoire filmée")
     s.add_argument("scene", type=Path)
     s.add_argument("text")
@@ -70,6 +80,9 @@ def main():
     elif a.cmd == "poses":
         from .poses import estimate_poses
         estimate_poses(a.scene, a.max_frames)
+    elif a.cmd == "colmap":
+        from .colmap import import_colmap
+        import_colmap(a.scene, a.sparse)
     elif a.cmd == "train":
         from .train import train
         train(a.scene, a.steps, a.downscale)
@@ -85,6 +98,9 @@ def main():
     elif a.cmd == "query":
         from .query import export_query
         export_query(a.scene, a.text, a.threshold, a.out, a.level, a.objet_entier)
+    elif a.cmd == "evaluate":
+        from .evaluate import evaluate
+        evaluate(a.root, a.scenes, a.threshold, a.objet_entier)
     elif a.cmd == "demo":
         from .demo import make_demo
         make_demo(a.scene, a.text, a.out)

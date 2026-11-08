@@ -13,6 +13,38 @@ grand public (RTX 2070, 8 Go).
 
 ![Viewer : « Où est le renard ? »](docs/viewer_renard.jpg)
 
+## Évaluation sur le benchmark LERF
+
+Benchmark de référence du domaine : dataset LERF annoté par les auteurs de
+LangSplat (`lerf_ovs`), avec **leur protocole d'évaluation reproduit à
+l'identique** ([evaluate.py](lang3d/evaluate.py)) et leurs poses COLMAP.
+Scène évaluée : **figurines** (4 vues annotées, 56 requêtes en anglais).
+
+| figurines | Localisation (%) | IoU moyen (%) |
+|---|---|---|
+| LERF (Kerr et al., ICCV 2023) | 75,0 | 38,6 |
+| LangSplat (Qin et al., CVPR 2024) | 80,4 | 44,7 |
+| **lang3d** | **83,9** | **49,0** |
+| lang3d, option *objet entier* | 83,9 | 52,9 |
+
+![Vert : annotation, rouge : prédiction](docs/lerf_figurines.jpg)
+
+*Contour vert : masque annoté à la main. Rouge : masque prédit. Images : dataset LERF.*
+
+**Comment lire ces chiffres :**
+- *Localisation* : le point le plus pertinent de la carte tombe-t-il dans la boîte de l'objet ? *IoU* : recouvrement entre la zone prédite et le masque annoté.
+- **Contrôle** : en mélangeant les requêtes entre les objets d'une même image, les scores tombent à 1,7 % (IoU) et 1,8 % (localisation). L'évaluation mesure donc bien la compréhension des requêtes.
+- Le chiffre principal utilise les réglages par défaut, fixés avant l'évaluation. L'option *objet entier* est donnée à titre indicatif : la choisir après avoir vu les scores reviendrait à régler la méthode sur le jeu de test.
+- **Une seule scène** sur les quatre du benchmark : les chiffres LERF / LangSplat ci-dessus sont ceux de la même scène, pas leur moyenne.
+- Conditions différentes : LangSplat utilise une RTX 3090, 30 000 itérations, SAM ViT-H et OpenCLIP ; lang3d une RTX 2070, 7 000 itérations, SAM ViT-B et SigLIP 2, sans entraînement des features. Le gain vient probablement en partie de SigLIP 2, plus récent que CLIP.
+- Échecs typiques : petits objets et noms propres (« pirate hat », « pumpkin », « miffy ») ; objets fins (les pieds de la chaise).
+
+Pour reproduire (après avoir téléchargé `lerf_ovs` depuis le README de LangSplat dans `data/`) :
+
+```bash
+SCENES=figurines bash scripts/run_lerf.sh
+```
+
 ## Résultats sur la scène « fox » (instant-ngp, 50 photos)
 
 | Étape | Temps (RTX 2070) | Résultat |
@@ -132,6 +164,9 @@ python -m lang3d view     scenes/salon        # → http://localhost:8080
 python -m lang3d query    scenes/salon "où est la chaise rouge ?"   # export .ply
 python -m lang3d demo     scenes/salon "où est la chaise rouge ?"   # → docs/demo.gif
 ```
+
+Avec des poses COLMAP existantes (dataset avec `sparse/0/`), remplacer `poses`
+par `python -m lang3d colmap <scène>`. Évaluation : `python -m lang3d evaluate data/lerf_ovs --scenes figurines`.
 
 Options de requête (viewer et `query`) :
 - **Niveau** (`--level small|large`) : `small` pour une partie d'objet (« oreille »), `large` pour un objet entier ; par défaut, le plus pertinent.
