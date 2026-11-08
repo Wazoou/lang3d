@@ -178,6 +178,10 @@ Options de requête (viewer et `query`) :
 - **Seuil** et **Isoler** (viewer) : régler la sélection et masquer le reste de la scène.
 - **Sélectionner en cliquant** (viewer) : cliquer sur un objet surligne tout ce qui lui ressemble, sans taper de texte (requête par l'exemple, à partir du vecteur de sens de la gaussienne cliquée).
 
+![Un clic sur le renard](docs/clic_renard.jpg)
+
+*Un seul clic sur le renard : la tête et sa plaque sont isolées (121 259 gaussiennes), plus proprement qu'avec la requête texte.*
+
 Pour un dossier d'images existant, mettre les images dans `scenes/<nom>/images/`
 et commencer à l'étape `poses`.
 
