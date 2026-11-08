@@ -1138,13 +1138,13 @@ def build():
                 "redressée, et la vue de départ est celle de la première caméra. SigLIP 2 ne tourne pas dans le "
                 "navigateur : les requêtes sont donc calculées à l'avance. Un recruteur peut tester sans rien "
                 "installer."),
-              photo(ROOT / "docs/demo_web.jpg", "Figure 23 — La démo web : « rideau rouge » surligné, le reste en "
+              photo(ROOT / "docs/demo_web.jpg", "Figure 18 — La démo web : « rideau rouge » surligné, le reste en "
                                                  "gris.", CW * 0.6),
               P("La démo web permet aussi la <b>sélection au clic</b> : chaque gaussienne y embarque son vecteur de "
                 "sens, compressé de 128 à 16 dimensions par une seconde SVD et stocké sur 1 octet par dimension "
                 "(les similarités restent corrélées à 0,989 avec l'original). Le clic lance un rayon depuis la "
                 "caméra, et le calcul se fait entièrement dans le navigateur."),
-              photo(ROOT / "docs/clic_roses.jpg", "Figure 24 — Un clic sur une seule rose surligne toutes les roses "
+              photo(ROOT / "docs/clic_roses.jpg", "Figure 19 — Un clic sur une seule rose surligne toutes les roses "
                                                   "du papier peint.", CW * 0.6),
               callout("Aucune requête texte ne trouvait le papier peint, car le score LERF le compare au négatif "
                       "« texture » (chapitre 13). La requête par l'exemple compare directement les vecteurs de sens, "
@@ -1154,7 +1154,7 @@ def build():
     # ---------------------------------------------------------- 10. résultats
     story += H1("10. Les résultats")
     story += H2("10.1 Les scènes de test")
-    story += [photo(ROOT / "docs/requetes_fox.jpg", "Figure 18 — Scène fox, requêtes en français. En rouge, les "
+    story += [photo(ROOT / "docs/requetes_fox.jpg", "Figure 20 — Scène fox, requêtes en français. En rouge, les "
                                                     "gaussiennes au-dessus du seuil.", CW),
               table([["Scène", "Réussi", "Raté"],
                      ["fox (photos publiques)", "« renard », « oreille du renard », « rideau rouge » (option objet "
@@ -1174,7 +1174,7 @@ def build():
                 "cube »…). Le protocole d'évaluation de LangSplat a été <b>reproduit à l'identique</b> : leur code a "
                 "été lu ligne à ligne, et le lissage des masques donne des résultats identiques à 100 % sur des tests "
                 "aléatoires. On utilise aussi les poses COLMAP fournies par le dataset, comme eux."),
-              figure(d_eval(), "Figure 19 — Le protocole d'évaluation : deux scores calculés pour chaque couple "
+              figure(d_eval(), "Figure 21 — Le protocole d'évaluation : deux scores calculés pour chaque couple "
                                "(vue annotée, requête)."),
               table([["Scène figurines (56 requêtes)", "Localisation", "IoU moyen"],
                      ["LERF (ICCV 2023)", "75,0 %", "38,6 %"],
@@ -1184,10 +1184,10 @@ def build():
                      ["Contrôle : requêtes mélangées", "1,8 %", "1,7 %"]],
                     [CW * 0.5, CW * 0.25, CW * 0.25]),
               Spacer(1, 8),
-              photo(ROOT / "docs/lerf_figurines.jpg", "Figure 20 — Trois requêtes sur figurines. Contour vert : "
+              photo(ROOT / "docs/lerf_figurines.jpg", "Figure 22 — Trois requêtes sur figurines. Contour vert : "
                                                       "annotation manuelle. Rouge : prédiction de lang3d. Images : "
                                                       "dataset LERF.", CW),
-              figure(d_iou_chart(), "Figure 21 — IoU moyen par objet sur figurines. Les échecs sont des petits "
+              figure(d_iou_chart(), "Figure 23 — IoU moyen par objet sur figurines. Les échecs sont des petits "
                                     "objets, des noms propres ou de marque (Miffy, Tesla) et des objets mal séparés "
                                     "de leur voisinage.")]
     story += H2("10.3 Comment lire ces chiffres honnêtement")
@@ -1247,7 +1247,7 @@ def build():
                     [CW * 0.3, CW * 0.36, CW * 0.34]),
               Spacer(1, 10)]
     story += H2("12.1 « Je n'ai pas CUDA ? » — si, en partie")
-    story += [figure(d_cuda(), "Figure 22 — Les trois étages de CUDA. Pour exécuter du code GPU, les deux du bas "
+    story += [figure(d_cuda(), "Figure 24 — Les trois étages de CUDA. Pour exécuter du code GPU, les deux du bas "
                                "suffisent ; le Toolkit ne sert qu'à compiler."),
               P("Le PyTorch installé (<font name='Mono'>torch 2.4.1+cu124</font>) embarque ses propres bibliothèques "
                 "CUDA 12.4. Le Toolkit (le compilateur <font name='Mono'>nvcc</font>) ne servirait qu'à compiler "
