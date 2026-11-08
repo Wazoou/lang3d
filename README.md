@@ -172,12 +172,41 @@ Options de requête (viewer et `query`) :
 - **Niveau** (`--level small|large`) : `small` pour une partie d'objet (« oreille »), `large` pour un objet entier ; par défaut, le plus pertinent.
 - **Objet entier** (`--objet-entier`) : ensemble de prompts, mieux pour les objets, moins bien pour les parties.
 - **Seuil** et **Isoler** (viewer) : régler la sélection et masquer le reste de la scène.
+- **Sélectionner en cliquant** (viewer) : cliquer sur un objet surligne tout ce qui lui ressemble, sans taper de texte (requête par l'exemple, à partir du vecteur de sens de la gaussienne cliquée).
 
 Pour un dossier d'images existant, mettre les images dans `scenes/<nom>/images/`
 et commencer à l'étape `poses`.
 
 Conseils de capture : 30 à 60 s, tourner lentement autour de la scène, éviter
 le flou, les reflets et les zones très sombres.
+
+## Démo web statique
+
+```bash
+python -m lang3d export-web scenes/fox "renard" "oreille du renard" "rideau rouge" "cadre photo" "fleurs roses"
+python -m http.server 8765 --directory docs/demo     # → http://localhost:8765
+```
+
+`export-web` produit une page autonome dans `docs/demo/` : les gaussiennes au format
+`.splat` (250 000 au maximum, ~8 Mo), un score par gaussienne et par requête
+précalculée, et un viewer [gsplat.js](https://github.com/huggingface/gsplat.js)
+chargé depuis un CDN. Aucun serveur Python ni GPU n'est nécessaire pour la
+consulter : elle peut être publiée telle quelle avec GitHub Pages
+(*Settings → Pages → Branch `main`, dossier `/docs`*), à l'adresse
+`https://<utilisateur>.github.io/lang3d/demo/`. SigLIP 2 ne tourne pas dans le
+navigateur : pour une requête libre, il faut le viewer local.
+
+## Tests
+
+```bash
+python -m pytest -q
+```
+
+19 tests : nettoyage des requêtes, lecteur COLMAP, protocole d'évaluation
+(lissage identique à celui de LangSplat), sélection des frames nettes, géométrie
+du padding VGGT, sélection au clic, format `.splat` et rotations de la démo web,
+et l'astuce du gradient (sur GPU uniquement).
+Ils tournent automatiquement sur GitHub Actions (Linux, CPU) à chaque push.
 
 ## Limites connues
 

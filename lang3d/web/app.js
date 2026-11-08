@@ -19,10 +19,13 @@ const n = splat.data.vertexCount;
 const original = splat.data.colors.slice();  // RGBA d'origine, pour revenir en arrière
 const state = { query: -1, threshold: meta.threshold, isolate: false };
 
-const [cx, cy, cz] = meta.camera.position;
-camera.position = new SPLAT.Vector3(cx, cy, cz);
-const controls = new SPLAT.OrbitControls(camera, canvas);
-controls.setCameraTarget(new SPLAT.Vector3(...meta.camera.target));
+// Point de vue initial = première caméra de la vidéo. OrbitControls place la caméra en
+// cible + r · (sin α cos β, −sin β, −cos α cos β) : on inverse cette formule.
+const [px, py, pz] = meta.camera.position, [tx, ty, tz] = meta.camera.target;
+const ox = px - tx, oy = py - ty, oz = pz - tz;
+const radius = 1.8 * Math.hypot(ox, oy, oz);  // recul : le champ de vision est plus étroit que celui du téléphone
+const controls = new SPLAT.OrbitControls(camera, canvas, Math.atan2(ox, -oz), Math.asin(-oy / Math.hypot(ox, oy, oz)), radius,
+                                         true, new SPLAT.Vector3(tx, ty, tz));
 
 // Même règle que lang3d.query.highlight : au-dessus du seuil, mélange vers le rouge ; sinon gris assombri.
 function recolor() {
@@ -49,7 +52,9 @@ function recolor() {
     }
     $("status").textContent = `${hits.toLocaleString("fr-FR")} gaussiennes surlignées · niveau ${meta.queries[state.query].level}`;
   }
+  // gsplat.js ne relit les données d'un objet qu'après un événement « objectChanged ».
   splat.data.changed = true;
+  splat.raiseChangeEvent();
 }
 
 // Les buffers partent vers un worker pendant la mise à jour : on attend qu'ils soient revenus.

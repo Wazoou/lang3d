@@ -74,7 +74,7 @@ def main():
 
     s = sub.add_parser("export-web", help="démo web statique (GitHub Pages) avec requêtes précalculées")
     s.add_argument("scene", type=Path)
-    s.add_argument("queries", nargs="+")
+    s.add_argument("queries", nargs="+", help="requêtes ; suffixe * = option « objet entier »")
     s.add_argument("--out", type=Path, default=Path("docs/demo"))
     s.add_argument("--max-gaussians", type=int, default=250_000)
 

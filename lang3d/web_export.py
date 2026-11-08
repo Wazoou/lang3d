@@ -97,7 +97,10 @@ def export_web(scene_dir: Path, queries: list[str], out_dir: Path, max_gaussians
     q = SceneQuery(scene_dir, device)
     blocks, meta = [], []
     for text in queries:
-        s, level = q.scores(text)
+        # « rideau rouge* » : l'étoile active l'ensemble de prompts (option « objet entier »).
+        ensemble = text.endswith("*")
+        text = text.rstrip("*").strip()
+        s, level = q.scores(text, ensemble=ensemble)
         blocks.append((s[order].clamp(0, 1) * 255).round().byte().cpu().numpy())
         meta.append({"label": clean_query(text), "level": level})
         print(f"  « {text} » [{level}] : {(s[order] > threshold).sum().item()} gaussiennes au-dessus du seuil")

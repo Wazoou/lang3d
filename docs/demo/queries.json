@@ -1,0 +1,38 @@
+{
+ "count": 250000,
+ "threshold": 0.5,
+ "queries": [
+  {
+   "label": "renard",
+   "level": "small"
+  },
+  {
+   "label": "oreille du renard",
+   "level": "small"
+  },
+  {
+   "label": "rideau rouge",
+   "level": "small"
+  },
+  {
+   "label": "cadre photo",
+   "level": "large"
+  },
+  {
+   "label": "fleurs roses",
+   "level": "large"
+  }
+ ],
+ "camera": {
+  "position": [
+   -0.0814,
+   0.1465,
+   -0.9511
+  ],
+  "target": [
+   -0.0802,
+   0.1012,
+   0.0136
+  ]
+ }
+}
