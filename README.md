@@ -221,10 +221,10 @@ navigateur : pour une requête libre, il faut le viewer local.
 python -m pytest -q
 ```
 
-19 tests : nettoyage des requêtes, lecteur COLMAP, protocole d'évaluation
+20 tests : nettoyage des requêtes, lecteur COLMAP, protocole d'évaluation
 (lissage identique à celui de LangSplat), sélection des frames nettes, géométrie
 du padding VGGT, sélection au clic, format `.splat` et rotations de la démo web,
-et l'astuce du gradient (sur GPU uniquement).
+carte de chaleur, et l'astuce du gradient (sur GPU uniquement).
 Ils tournent automatiquement sur GitHub Actions (Linux, CPU) à chaque push.
 
 ## Limites connues
