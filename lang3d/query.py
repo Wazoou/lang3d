@@ -72,6 +72,18 @@ class SceneQuery:
                 best = (rel, lvl)
         return best
 
+    def similar(self, idx: int, level: str = "large") -> torch.Tensor:
+        """Ressemblance de chaque gaussienne à la gaussienne `idx` (requête par l'exemple), dans [0, 1].
+
+        0 = pas plus proche que la gaussienne médiane de la scène, 1 = identique."""
+        feats = self.feats[level]
+        cos = feats @ feats[idx]
+        valid = self.valid[level]
+        base = cos[valid].median()
+        sim = ((cos - base) / (1 - base).clamp_min(1e-6)).clamp(0, 1)
+        sim[~valid] = 0
+        return sim
+
     def scores(self, text: str, level: str | None = None, ensemble: bool = False) -> tuple[torch.Tensor, str]:
         """Pertinence renormalisée dans [0, 1] : 0 = pas mieux qu'un négatif, 1 = meilleure gaussienne."""
         rel, lvl = self.relevancy(text, level, ensemble)

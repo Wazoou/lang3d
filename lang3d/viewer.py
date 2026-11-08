@@ -27,6 +27,20 @@ def quat_to_rotmat(q: torch.Tensor) -> torch.Tensor:
     ).reshape(-1, 3, 3)
 
 
+def pick_gaussian(origin: torch.Tensor, direction: torch.Tensor, centers: torch.Tensor, radius: torch.Tensor,
+                  opacity: torch.Tensor) -> int | None:
+    """Première gaussienne assez opaque traversée par le rayon (approximation : sphère de rayon 2·s_max)."""
+    d = direction / direction.norm()
+    v = centers - origin
+    t = v @ d                                   # distance le long du rayon
+    perp = (v - t[:, None] * d).norm(dim=1)     # distance au rayon
+    hit = (t > 0) & (perp < 2 * radius) & (opacity > 0.3)
+    if not hit.any():
+        return None
+    t = torch.where(hit, t, torch.full_like(t, float("inf")))
+    return int(t.argmin())
+
+
 def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
     splats, _, up = load_splats(scene_dir / "gs" / "splats.pt", device)
     # On n'envoie pas au navigateur les gaussiennes quasi transparentes.
@@ -37,6 +51,9 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
     covariances = (R * s2[:, None, :]) @ R.transpose(1, 2)
     rgb = sh_to_rgb(splats["sh0"][keep, 0])
     base_opacity = opacity[keep]
+    keep_idx = torch.nonzero(keep)[:, 0]
+    centers_t = splats["means"][keep]
+    radius_t = torch.exp(splats["scales"][keep]).max(dim=1).values
     print(f"{keep.sum().item()} gaussiennes affichées sur {len(keep)}")
 
     query = SceneQuery(scene_dir, device)
@@ -55,8 +72,9 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
         opacities=base_opacity[:, None].cpu().numpy(),
     )
 
-    server.gui.add_markdown("### Scène 3D interrogeable\nTape un objet, en français ou en anglais.")
-    text = server.gui.add_text("Requête", "Où est le renard ?")
+    server.gui.add_markdown("### Scène 3D interrogeable\nTape un objet, en français ou en anglais, "
+                            "ou clique sur un objet pour trouver ce qui lui ressemble.")
+    text = server.gui.add_text("Requête", "", hint="ex. : où est la chaise rouge ?")
     level = server.gui.add_dropdown(
         "Niveau", ("auto", "small", "large"), initial_value="auto",
         hint="small = parties d'objets (oreille), large = objets entiers (renard)",
@@ -65,38 +83,56 @@ def run_viewer(scene_dir: Path, port: int = 8080, device: str = "cuda"):
         "Objet entier", False, hint="Moyenne « {} » / « une photo de {} » : mieux pour les objets, moins bien pour les parties",
     )
     search = server.gui.add_button("Chercher")
+    pick = server.gui.add_button("Sélectionner en cliquant", hint="puis clique sur un objet dans la scène")
     threshold = server.gui.add_slider("Seuil", 0.0, 1.0, 0.01, 0.5)
     isolate = server.gui.add_checkbox("Isoler", False)
     reset = server.gui.add_button("Réinitialiser")
     status = server.gui.add_markdown("")
-    state = {"scores": None, "level": ""}
+    state = {"scores": None, "label": ""}
 
     def refresh():
         if state["scores"] is None:
             colors, opac = rgb, base_opacity
+            status.content = state["label"]
         else:
             colors, hit = highlight(rgb, state["scores"], threshold.value)
             opac = base_opacity * hit if isolate.value else base_opacity
-            status.content = f"**{hit.sum().item()}** gaussiennes au-dessus du seuil"
+            status.content = f"**{hit.sum().item()}** gaussiennes au-dessus du seuil · {state['label']}"
         splat.rgbs = colors.cpu().numpy()
         splat.opacities = opac[:, None].cpu().numpy()
 
     @search.on_click
     def _(_):
         t0 = time.time()
-        scores, state["level"] = query.scores(
-            text.value, None if level.value == "auto" else level.value, ensemble.value
-        )
+        scores, lvl = query.scores(text.value, None if level.value == "auto" else level.value, ensemble.value)
         state["scores"] = scores[keep]
+        state["label"] = f"« {clean_query(text.value)} » (niveau {lvl}) en {time.time() - t0:.2f} s"
         refresh()
-        status.content += (
-            f" · « {clean_query(text.value)} » (niveau {state['level']}) en {time.time() - t0:.2f} s"
-        )
+
+    @pick.on_click
+    def _(_):
+        state["label"] = "Clique sur un objet dans la scène…"
+        status.content = state["label"]
+
+        @server.scene.on_pointer_event(event_type="click")
+        def _(event: viser.ScenePointerEvent):
+            server.scene.remove_pointer_callback()  # un seul clic
+            o = torch.tensor(event.ray_origin, dtype=torch.float32, device=device)
+            d = torch.tensor(event.ray_direction, dtype=torch.float32, device=device)
+            j = pick_gaussian(o, d, centers_t, radius_t, base_opacity)
+            if j is None:
+                state["label"] = "Rien sous le curseur : réessaie sur un objet."
+                refresh()
+                return
+            lvl = "large" if level.value == "auto" else level.value
+            state["scores"] = query.similar(int(keep_idx[j]), lvl)[keep]
+            state["label"] = f"objets semblables au point cliqué (niveau {lvl})"
+            refresh()
 
     @reset.on_click
     def _(_):
         state["scores"] = None
-        status.content = ""
+        state["label"] = ""
         refresh()
 
     threshold.on_update(lambda _: refresh())

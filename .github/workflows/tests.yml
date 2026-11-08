@@ -15,6 +15,6 @@ jobs:
       - name: Dépendances (CPU, sans gsplat ni VGGT)
         run: |
           pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-          pip install "numpy<2" opencv-python-headless open_clip_torch plyfile tqdm pytest
+          pip install "numpy<2" opencv-python-headless open_clip_torch plyfile tqdm viser pytest
       - name: Tests
         run: pytest -q
