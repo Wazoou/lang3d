@@ -11,7 +11,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from gsplat import rasterization
 
 SH_C0 = 0.28209479177387814  # constante de l'harmonique sphérique d'ordre 0
 
@@ -64,6 +63,8 @@ def render(splats, viewmat: torch.Tensor, K: torch.Tensor, width: int, height: i
     `colors` permet de « splatter » n'importe quel vecteur par gaussienne :
     c'est ce qu'on utilise pour les features langage.
     """
+    from gsplat import rasterization  # import tardif : le reste du module reste utilisable sans CUDA (tests, CI)
+
     if colors is None:
         colors = torch.cat([splats["sh0"], splats["shN"]], 1)
     else:

@@ -23,6 +23,15 @@ from .gaussians import load_splats, render
 from .scene import load_scene
 
 
+def splat_backward(splats, viewmat: torch.Tensor, K: torch.Tensor, w: int, h: int,
+                   target: torch.Tensor) -> torch.Tensor:
+    """Σ_p w_ip · target(p) pour chaque gaussienne i, en un rendu + un backward. target : (h, w, D)."""
+    colors = torch.zeros(len(splats["means"]), target.shape[-1], device=target.device, requires_grad=True)
+    out, _, _ = render(splats, viewmat, K, w, h, colors=colors)
+    (out[0] * target).sum().backward()
+    return colors.grad
+
+
 def lift_features(scene_dir: Path, dim: int = 128, device: str = "cuda"):
     splats, _, _ = load_splats(scene_dir / "gs" / "splats.pt", device)
     frames = {f.name: f for f in load_scene(scene_dir)[0]}
@@ -56,11 +65,7 @@ def lift_features(scene_dir: Path, dim: int = 128, device: str = "cuda"):
             table[:m, :dim] = feats.float().to(device) @ P
             table[:m, dim] = 1.0
             target = table[index.long().to(device)]  # (h, w, dim + 1)
-
-            colors = torch.zeros(n, dim + 1, device=device, requires_grad=True)
-            out, _, _ = render(splats, viewmat, K, w, h, colors=colors)
-            (out[0] * target).sum().backward()
-            acc += colors.grad
+            acc += splat_backward(splats, viewmat, K, w, h, target)
 
         weight = acc[:, dim]
         feats_3d[level] = F.normalize(acc[:, :dim] / weight.clamp_min(1e-8)[:, None], dim=-1).half().cpu()
