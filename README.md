@@ -187,6 +187,8 @@ python -m lang3d export-web scenes/fox "renard" "oreille du renard" "rideau roug
 python -m http.server 8765 --directory docs/demo     # → http://localhost:8765
 ```
 
+![Démo web : « rideau rouge »](docs/demo_web.jpg)
+
 `export-web` produit une page autonome dans `docs/demo/` : les gaussiennes au format
 `.splat` (250 000 au maximum, ~8 Mo), un score par gaussienne et par requête
 précalculée, et un viewer [gsplat.js](https://github.com/huggingface/gsplat.js)
