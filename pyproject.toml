@@ -21,3 +21,4 @@ lang3d = ["web/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # `pytest` seul (comme sur la CI) n'ajoute pas la racine aux imports, contrairement à `python -m pytest`
